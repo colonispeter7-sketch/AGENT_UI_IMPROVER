@@ -9,7 +9,7 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
-from agents import Agent, Model, ModelSettings, RunConfig, Runner, RunResult
+from agents import Agent, Model, ModelSettings, RunConfig, RunHooks, Runner, RunResult
 from dotenv import load_dotenv
 
 DEFAULT_MODEL = "gpt-4.1-mini"
@@ -45,12 +45,22 @@ class Review:
     ui_reviews: tuple[str, ...]
 
 
-def build_lead(model: str | Model, reviews: list[str], config: RunConfig) -> Agent:
+class DelegationError(RuntimeError):
+    """A run finished without a completed specialist review."""
+
+
+class ResponseError(RuntimeError):
+    """An agent returned an empty or unusable response."""
+
+
+def build_lead(
+    model: str | Model, reviews: list[str], config: RunConfig, hooks: RunHooks | None = None
+) -> Agent:
     """Keep the Lead in control; the specialist returns through a tool call."""
     async def record_review(result: RunResult) -> str:
         output = result.final_output
         if not isinstance(output, str) or not output.strip():
-            raise RuntimeError("UI Agent returned an empty review.")
+            raise ResponseError("UI Agent returned an empty review.")
         reviews.append(output)
         return output
 
@@ -79,26 +89,34 @@ def build_lead(model: str | Model, reviews: list[str], config: RunConfig) -> Age
             failure_error_function=None,
             max_turns=2,
             run_config=config,
+            hooks=hooks,
         )],
     )
 
 
-async def review(objective: str, model: str | Model = DEFAULT_MODEL) -> Review:
+async def review(
+    objective: str,
+    model: str | Model = DEFAULT_MODEL,
+    *,
+    hooks: RunHooks | None = None,
+    model_settings: ModelSettings | None = None,
+) -> Review:
     """Run one bounded review. Raise if delegation or synthesis did not complete."""
     if not objective.strip():
         raise ValueError("The development objective must not be empty.")
     reviews: list[str] = []
-    config = RunConfig(tracing_disabled=True)
+    config = RunConfig(tracing_disabled=True, model_settings=model_settings)
     result = await Runner.run(
-        build_lead(model, reviews, config),
+        build_lead(model, reviews, config, hooks),
         input=objective,
         max_turns=4,
         run_config=config,
+        hooks=hooks,
     )
     if not reviews:
-        raise RuntimeError("Lead Agent finished without a completed UI Agent review.")
+        raise DelegationError("Lead Agent finished without a completed UI Agent review.")
     if not isinstance(result.final_output, str) or not result.final_output.strip():
-        raise RuntimeError("Lead Agent returned an empty recommendation.")
+        raise ResponseError("Lead Agent returned an empty recommendation.")
     return Review(result.final_output, tuple(reviews))
 
 
