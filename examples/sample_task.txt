@@ -1,0 +1,21 @@
+Fictional demonstration: Lantern Board, a community workshop planner.
+
+Objective: Recommend the smallest frontend improvements that help first-time
+visitors find and reserve a workshop on a mobile phone. Prioritize a one-week
+iteration by one developer; keep the existing branding and booking backend.
+
+Application description:
+- The landing page has a large hero illustration and three unlabeled icon links.
+  Workshops are reached through a footer link titled "Explore".
+- Workshop cards show a title and image. Date, price, and remaining seats appear
+  only after opening the detail page. There is no filter or search.
+- A detail page offers a "Continue" button. It requires account creation before
+  showing the booking summary. Navigating back clears the chosen session.
+- The booking form uses placeholder text as its only field labels. Errors appear
+  in a generic banner above the form and do not identify the affected fields.
+- Light gray text appears on a white background. Keyboard focus indicators have
+  been removed, and an icon-only menu button has no accessible label.
+- The confirmation page says "Done" without a workshop date or next steps.
+
+There are no screenshots, analytics, or user-study results. Do not assume a
+frontend framework. Provide a prioritized plan and concrete acceptance checks.
