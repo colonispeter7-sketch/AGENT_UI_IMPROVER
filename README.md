@@ -111,3 +111,21 @@ A zero exit code means the workflow completed. Invalid arguments or a missing ke
 exit with code 2; file, SDK, or API failures exit with code 1. Errors identify their
 type without printing request bodies or credentials. Check key validity, quota,
 model access, and connectivity for an API failure.
+
+## Optional live integration validation
+
+Task #2 adds a fixed-fictional-data live test with machine-readable results:
+
+```bash
+python live_test.py             # skips; no API calls
+python live_test.py --run-live  # explicitly enables billable API calls
+```
+
+It uses the same two-agent workflow and verifies the SDK lifecycle and the actual
+UI tool output delivered to the Lead's synthesis request. The report includes
+specialist findings, the final recommendation, per-response usage, and distinct
+authentication/configuration/delegation/response failure categories. Default
+offline test discovery never makes live requests.
+
+See [live validation instructions](docs/LIVE_VALIDATION.md) for exact setup,
+billing limits, exit codes, report inspection, and the limits of automated checks.
